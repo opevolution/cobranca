@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<txg:Texgit xmlns:txg="http://gilmatryx.googlepages.com/Texgit" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://gilmatryx.googlepages.com/Texgit file:////home/gilmar/NFM/WORKSPACE/TexgitSchema.xsd" version="1.0-academic">
+    <FlatFile>
+        <layout>
+            <name>Layout cnab400 Banco do Brasil</name>
+            <version>Versão 0.0.1</version>
+            <description>
+                Através deste layout, você poderá gerar arquivos para remessa cnab400
+            </description>
+            <bank_name>Banco do Brasil SA</bank_name>
+            <bank_code>001</bank_code>
+        </layout>
+        <GroupOfRecords>
+            <Record name="Header">
+                <GroupOfFields>
+                    <IdType name="IDReg" value="0" length="1" position="1"/>
+                    <Field name="IdentificacaoRemessa" value="1" type="INTEGER" length="1" padding="ZERO_LEFT"/>
+                    <Field name="LiteralRemessa" value="REMESSA" length="7"/>
+                    <Field name="CodigoServico" value="01" type="INTEGER" length="2" padding="ZERO_LEFT"/>
+                    <Field name="LiteralServico" value="COBRANCA" length="8"/>
+					<Field name="Branco1" value=" " length="7"/>
+                    <Field name="NroAgencia" type="INTEGER" length="4" padding="ZERO_LEFT"/>
+                    <Field name="DvAgencia" length="1"/>
+                    <Field name="NroContaCorrente" type="INTEGER" length="8" padding="ZERO_LEFT"/>
+                    <Field name="DvContaCorrente" length="1"/>
+					<Field name="CompReg" value="0" length="6"/>
+                    <Field name="NomeCedente" length="30"/>
+                    <Field name="NomeBanco" length="18" value="001BANCODOBRASIL"/>
+                    <Field name="DataGravacaoArquivo" type="DATE" length="6" format="DATE_DDMMYY"/>
+                    <Field name="NroSequencialRemessa" type="INTEGER" length="7" padding="ZERO_LEFT"/>
+                    <Field name="Branco2" value=" " length="22"/>
+                    <Field name="NroConvLider" type="INTEGER" length="7" padding="ZERO_LEFT"/>
+                    <Field name="Branco3" value=" " length="258"/>
+                    <Field name="NroSequencialRegistro" type="INTEGER" length="6" padding="ZERO_LEFT"/>
+                </GroupOfFields>
+            </Record>
+            <Record name="Detalhe-Transacao" repeatable="true">
+                <GroupOfFields>
+                    <IdType name="IDReg" value="7" length="1" position="1"/>
+                    <Field name="TpInscrCedente" length="2" type="INTEGER" padding="ZERO_LEFT"/>
+                    <Field name="CnpjCpfCedente" length="14" type="INTEGER" padding="ZERO_LEFT"/>
+                    <Field name="NroAgencia" type="INTEGER" length="4" padding="ZERO_LEFT"/>
+                    <Field name="DvAgencia" length="1"/>
+                    <Field name="NroContaCorrente" type="INTEGER" length="8" padding="ZERO_LEFT"/>
+                    <Field name="DvContaCorrente" length="1"/>
+                    <Field name="NroConvCobCedente" type="INTEGER" length="7" padding="ZERO_LEFT"/>
+                    <Field name="CodCtrolEmpresa" length="25"/>
+                    <Field name="NossoNumero" type="INTEGER" length="17" padding="ZERO_LEFT"/>
+                    <Field name="NroPrestacao" length="2" type="INTEGER" padding="ZERO_LEFT"/>
+                    <Field name="GrupoValor" value="00" length="2"/>
+                    <Field name="Branco1" value=" " length="3"/>
+                    <Field name="IndMensagemSacAva" length="1"/>
+                    <Field name="Branco2" value=" " length="3"/>
+                    <Field name="VariacaoCarteira" length="3" type="INTEGER" padding="ZERO_LEFT"/>
+                    <Field name="ContaCaucao" value="0" length="1"/>
+                    <Field name="NumeroBordero" length="6" type="INTEGER" padding="ZERO_LEFT"/>
+                    <Field name="TipoCobranca" length="5"/>
+                    <Field name="CarteiraCobranca" length="2" type="INTEGER" padding="ZERO_LEFT"/>
+                    <Field name="Comando" length="2" type="INTEGER" padding="ZERO_LEFT"/>
+                    <Field name="NroTitulo" length="10"/>
+                    <Field name="DataVencimentoTitulo" type="DATE" length="6" format="DATE_DDMMYY"/>
+                    <Field name="ValorTitulo" type="INTEGER" length="13" padding="ZERO_LEFT"/>
+                    <Field name="NroBanco" length="3" value="001"/>
+                    <Field name="NroAgenciaCobradora" length="4" value="0000"/>
+                    <Field name="DvAgenciaCobradora" length="1" value=" "/>
+                    <Field name="EspecieTitulo" type="INTEGER" length="2" padding="ZERO_LEFT"/>
+                    <Field name="AceiteTitulo" length="1"/>
+                    <Field name="DataEmissaoTitulo" type="DATE" length="6" format="DATE_DDMMYY"/>
+                    <Field name="InstrucaoCodificada1" type="INTEGER" length="2" padding="ZERO_LEFT"/>
+                    <Field name="InstrucaoCodificada2" type="INTEGER" length="2" padding="ZERO_LEFT"/>
+                    <Field name="MoraDiaria" type="INTEGER" length="13" padding="ZERO_LEFT"/>
+                    <Field name="DataLimiteDesconto" length="6"/>
+                    <Field name="ValorDesconto" type="INTEGER" length="13" padding="ZERO_LEFT"/>
+                    <Field name="ValorIOF" type="INTEGER" length="13" padding="ZERO_LEFT"/>
+                    <Field name="ValorAbatimento" type="INTEGER" length="13" padding="ZERO_LEFT"/>
+                    <Field name="TipoInscSacado" type="INTEGER" length="2" padding="ZERO_LEFT"/>
+                    <Field name="CnpjCpfSacado" type="INTEGER" length="14" padding="ZERO_LEFT"/>
+                    <Field name="NomeSacado" length="37"/>
+                    <Field name="Branco3" value=" " length="3"/>
+                    <Field name="EnderecoSacado" length="40"/>
+                    <Field name="BairroSacado" length="12"/>
+                    <Field name="CepSacado" type="INTEGER" length="8" padding="ZERO_LEFT"/>
+                    <Field name="CidadeSacado" length="15"/>
+                    <Field name="UfCidadeSacado" length="2"/>
+                    <Field name="Avalista-2Mensagem" length="40"/>
+                    <Field name="DiasProtesto" type="INTEGER" length="2" padding="ZERO_LEFT"/>
+                    <Field name="Branco4" value=" " length="1"/>
+                    <Field name="NroSequencialRegistro" type="INTEGER" length="6" padding="ZERO_LEFT"/>
+                </GroupOfFields>                
+                <GroupOfInnerRecords>
+                    <Record name="MultaBoleto">
+                        <GroupOfFields>
+                            <IdType name="IDReg" value="51" length="1" position="1" />
+                            <Field name="TipoServico" length="2" value="99"/>
+                            <Field name="CodMulta" type="INTEGER" length="1" padding="ZERO_LEFT"/>
+                            <Field name="DataInicioCobranca" length="6"/>
+                            <Field name="ValorPercMulta" type="INTEGER" length="12" padding="ZERO_LEFT"/>
+                            <Field name="Branco1" length="372" value=" " />
+                            <SequencialNumber name="NroSequencialRegistro" type="INTEGER" length="6" padding="ZERO_LEFT" />
+                        </GroupOfFields>
+                    </Record>
+                    <Record name="eMail">
+                        <GroupOfFields>
+                            <IdType name="IDReg" value="52" length="1" position="1" />
+                            <Field name="TipoServico" length="2" value="01"/>
+                    		<Field name="eMailSacado" length="136"/>
+                            <Field name="Branco1" length="255" value=" " />
+                            <SequencialNumber name="NroSequencialRegistro" type="INTEGER" length="6" padding="ZERO_LEFT" />
+                        </GroupOfFields>
+                    </Record>
+                    <Record name="NumeroTitCedente">
+                        <GroupOfFields>
+                            <IdType name="IDReg" value="53" length="1" position="1" />
+                            <Field name="TipoServico" length="2" value="03"/>
+                    		<Field name="IdentTipoCedente" length="15"/>
+                            <Field name="Branco1" length="376" value=" " />
+                            <SequencialNumber name="NroSequencialRegistro" type="INTEGER" length="6" padding="ZERO_LEFT" />
+                        </GroupOfFields>
+                    </Record>
+                </GroupOfInnerRecords>
+            </Record>
+            <Record name="Trailler">
+                <GroupOfFields>
+                    <IdType name="IDReg" value="9" length="1" position="1"/>
+                    <Field name="Branco5" value=" " length="393"/>
+                    <Field name="NroSequencialRegistro" type="INTEGER" length="6" padding="ZERO_LEFT"/>
+                </GroupOfFields>
+            </Record> 
+        </GroupOfRecords>
+    </FlatFile>
+    
+</txg:Texgit>

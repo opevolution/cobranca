@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+    
+    <record id="cnab_importer_form" model="ir.ui.view">
+        <field name="name">cnab.wizard.importer</field>
+        <field name="model">cnab.wizard.importer</field>
+        <field name="arch" type="xml">
+            <form string="Importar CNAB" version="7.0">
+                <group>
+                    <field name="bank_id"/>
+                    <field name="file"/>
+                </group>
+                <footer>
+                    <button type="object" name="import_file" string="Import"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    
+    <record id="action_cnab_importer" model="ir.actions.act_window">
+        <field name="name">Importar CNAB</field>
+        <field name="res_model">cnab.wizard.importer</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="domain">[]</field>
+    </record>
+    
+    <menuitem 
+        id="menu_cnab_importer" 
+        name="Importar Arquivo-Retorno"
+        action="action_cnab_importer" 
+        parent="menu_cnab_root"
+        sequence="1" />
+    </data>
+    
+</openerp>

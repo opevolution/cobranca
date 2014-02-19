@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+		<record id="cnab_exporter_form" model="ir.ui.view">
+		    <field name="name">cnab.wizard.exporter</field>
+		    <field name="model">cnab.wizard.exporter</field>
+		    <field name="arch" type="xml">
+		        <form string="Exportar CNAB" version="7.0">
+		            <field name="state" invisible="1"/>
+		            <group states="init">
+		                <field name="bank_partner_id"/>
+		            </group>
+		            <group states="done">
+		                <field name="filename" invisible="1"/>
+		                <field name="file" filename="filename"/>
+		            </group>
+		            <footer>
+		                <group states="init">
+		                    <button type="object" name="export" string="Export"/>
+		                </group>
+		            </footer>
+		        </form>
+		    </field>
+		</record>
+		
+		<record id="action_cnab_exporter" model="ir.actions.act_window">
+		    <field name="name">Exportar CNAB</field>
+		    <field name="res_model">cnab.wizard.exporter</field>
+		    <field name="view_type">form</field>
+		    <field name="view_mode">form</field>
+		    <field name="target">new</field>
+		    <field name="domain">[]</field>
+		</record>
+		
+		<act_window id="actwindow_cnab_exporter" key2="client_action_multi"
+		    name="Exportar CNAB" res_model="cnab.wizard.exporter"
+		    src_model="account.invoice" view_id="cnab_exporter_form"
+		    view_mode="form" target="new" view_type="form"/>
+		    
+	</data>
+    
+</openerp>

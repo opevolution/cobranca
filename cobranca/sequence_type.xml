@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data noupdate="1">
+        
+        <record id="cnab_sequence_type" model="ir.sequence.type">
+            <field name="name">cnab_sequence_type</field>
+            <field name="code">cnab.sequence</field>
+        </record>
+        
+    </data>
+</openerp>

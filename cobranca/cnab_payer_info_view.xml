@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+    
+    <record id="cnab_payer_info_form" model="ir.ui.view">
+        <field name="name">CNAB Payer Info</field>
+        <field name="model">cnab.payer_info</field>
+        <field name="arch" type="xml">
+            <form string="Informação do Pagador" version="7.0">
+            	<group col="4">
+	                <group>
+	                    <field name="name"/>
+	                    <field name="cob_bank_id"/>
+	                </group>
+	                <group>
+	                    <field name="tx_juros"/>
+	                    <field name="tx_multa"/>
+	                </group>
+				</group>
+				<group>
+					<field name="instrucoes"/>	
+				</group>
+            </form>
+        </field>
+    </record>
+    
+    </data>
+</openerp>

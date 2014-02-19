@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        
+        <record id="cnab_res_bank_form" model="ir.ui.view">
+            <field name="name">cnab.bank</field>
+            <field name="view_type">form</field>
+            <field name="model">res.bank</field>
+            <field name="inherit_id" ref="base.view_res_bank_form"/>
+            <field name="arch" type="xml">
+                <group string="Communication" position="after">
+                    <group string="CNAB">
+                        <field name="enable_cnab"/>
+                        <field name="cnab_name" attrs="{'required': [('enable_cnab','=',True)], 'readonly': [('enable_cnab','=',False)]}"/>
+                        <field name="cnab_code" attrs="{'required': [('enable_cnab','=',True)], 'readonly': [('enable_cnab','=',False)]}"/>
+                    </group>
+                </group>
+            </field>
+        </record>
+ 
+ 	    <record id="view_partner_bank_boleto_form_inherit" model="ir.ui.view">
+	        <field name="name">Partner Bank Accounts Cobranca</field>
+	        <field name="model">res.partner.bank</field>
+	        <field name="inherit_id" ref="base.view_partner_bank_form"/>
+	        <field name="arch" type="xml">
+	            <group name="bank" position="after">
+	                <group name="boleto" col="2" colspan="2" attrs="{'invisible': [('company_id','=', False)]}">
+	                	<field name="enable_cobranca"/>
+            			<separator string="Configuração Cobrança" colspan="2"  attrs="{'invisible': [('enable_cobranca','=', False)]}"/>
+            			<group col="4" colspan="2" attrs="{'invisible': [('enable_cobranca','=', False)]}">
+            				<group>
+		                      	<field name="nro_convenio" attrs="{'invisible': [('enable_cobranca','=', False)]}"/>
+		                      	<field name="cod_carteira" attrs="{'invisible': [('enable_cobranca','=', False)]}"/>
+		                      	<field name="cod_empresa" attrs="{'invisible': [('enable_cobranca','=', False)]}"/>
+		                      	<field name="tx_juros" attrs="{'invisible': [('enable_cobranca','=', False)]}"/>
+		                      	<field name="tx_multa" attrs="{'invisible': [('enable_cobranca','=', False)]}"/>
+		                    </group>
+		                    <group>
+		                      	<field name="enable_boleto" attrs="{'invisible': [('enable_cobranca','=', False)]}"/>
+		                      	<field name="enable_cnab" attrs="{'invisible': [('enable_cobranca','=', False)]}"/>
+		                      	<field name="leiaute_envio" attrs="{'invisible': ['|',('enable_cobranca','=', False),('enable_cnab','=', False)]}"/>
+		                      	<field name="leiaute_remessa" attrs="{'invisible': ['|',('enable_cobranca','=', False),('enable_cnab','=', False)]}"/>
+		                      	<field name="CNAB_sequence_id" attrs="{'invisible': ['|',('enable_cobranca','=', False),('enable_cnab','=', False)]}"/>
+		                    </group>
+						</group>		          
+	                    <group col="4" colspan="2" attrs="{'invisible': [('enable_cobranca','=', False)]}">
+	                    	<field name="instrucoes" attrs="{'invisible': ['|',('enable_cobranca','=', False),('enable_boleto','=', False)]}"/>
+	                    </group>
+	                </group>
+	            </group>
+	        </field>
+	    </record>
+        
+    </data>
+</openerp>
