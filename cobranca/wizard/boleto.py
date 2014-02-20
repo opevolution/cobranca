@@ -91,7 +91,7 @@ class BoletoGenerator(object):
         
         Linha_Juros = '\r\n'
         if juros_dia > 0 and val_multa > 0:
-            Linha_Juros = 'Após vencimento, multa de R$ %.2f e mora de R$ %.2f .\r\n' % (val_multa,juros_dia)
+            Linha_Juros = u'Após vencimento, multa de R$ %.2f e mora de R$ %.2f .\r\n' % (val_multa,juros_dia)
         
         if conta.instrucoes:
             boleto.instrucoes = Linha_Juros + conta.instrucoes + '\r\n'
@@ -105,9 +105,9 @@ class BoletoGenerator(object):
         boleto.quantidade = ''
         #boleto.nosso_numero = 1
         boleto.sacado = [
-                         "%s - %s" % (invoice.partner_id.cnpj_cpf,(invoice.partner_id.legal_name or invoice.partner_id.name)),
-                         "%s, %s - %s - %s - %s - Cep. %s" % (invoice.partner_id.street, invoice.partner_id.number, invoice.partner_id.district, invoice.partner_id.l10n_br_city_id.name, invoice.partner_id.state_id.code, invoice.partner_id.zip),
-                         '',]
+                         u"%s - %s" % (invoice.partner_id.cnpj_cpf,(invoice.partner_id.legal_name or invoice.partner_id.name)),
+                         u"%s, %s - %s - %s - %s - Cep. %s" % (invoice.partner_id.street, invoice.partner_id.number, invoice.partner_id.district, invoice.partner_id.l10n_br_city_id.name, invoice.partner_id.state_id.code, invoice.partner_id.zip),
+                         u'',]
 
 #             boleto.sacado = [
 #                 "%s" % (invoice.partner_id.legal_name or invoice.partner_id.name),
