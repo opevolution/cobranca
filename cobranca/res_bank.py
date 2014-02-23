@@ -24,16 +24,6 @@ import netsvc
 from tools.translate import _
 from osv import osv, fields
 
-class Bank(osv.osv):
-    _name = 'res.bank'
-    _inherit = 'res.bank'
-    
-    _columns = {
-                'enable_cnab': fields.boolean('CNAB'),
-                'cnab_name': fields.char('Nome CNAB', size=15),
-                'cnab_code': fields.char('Cod. CNAB', size=3),
-                }
-
 class res_partner_bank(osv.osv):
     _inherit = 'res.partner.bank'
 
@@ -43,6 +33,7 @@ class res_partner_bank(osv.osv):
         'cod_carteira': fields.char(u'Carteira', size=10),
         'tx_juros': fields.float('% Juros', digits=(12, 6)),
         'tx_multa': fields.float('% Multa', digits=(12, 6)),
+        'dias_protesto': fields.integer('Dias Protesto'),
         'instrucoes': fields.text(u'Instruções'),
         'cod_empresa': fields.char(u'Código da Empresa', size=20),
         'enable_boleto': fields.boolean('Boleto'),
@@ -50,5 +41,6 @@ class res_partner_bank(osv.osv):
         'leiaute_remessa': fields.many2one('cnab.file_format', u'Leiaute Remessa',domain="[('type','=','Arquivo-Remessa')]"),
         'leiaute_envio': fields.many2one('cnab.file_format', u'Leiaute Retorno',domain="[('type','=','Arquivo-Retorno')]"),
         'CNAB_sequence_id': fields.many2one('ir.sequence', u'Sequência'),
+        'custom_property_ids': fields.one2many('cnab.custom_property', 'partner_bank_id', u'Propriedades Personalizadas'),
     }
     

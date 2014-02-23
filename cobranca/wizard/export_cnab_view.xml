@@ -10,6 +10,9 @@
 		            <field name="state" invisible="1"/>
 		            <group states="init">
 		                <field name="bank_partner_id"/>
+						<field name="sacador_id"/>
+                		<field name="cob_info_id"/>
+                		<field name="Nro_Seq"/>
 		            </group>
 		            <group states="done">
 		                <field name="filename" invisible="1"/>

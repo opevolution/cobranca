@@ -15,7 +15,7 @@
         id="menu_cnab_file_format_loader" 
         name="Carregar Formato de Arquivos"
         action="action_cnab_file_format_loader" 
-        parent="menu_cnab_root"
+        parent="menu_cob_config"
         sequence="20" />
         
     <record id="cnab_file_format_loader_form" model="ir.ui.view">

@@ -30,5 +30,5 @@ class Company(osv.osv):
     _inherit = 'res.company'
     
     _columns = {
-                'cnab_info_id': fields.many2one('cnab.payee_info', 'CNAB Info'),
+                'cob_banc_id': fields.many2one('res.partner.bank', u'Convênio Padrão',domain=[('enable_cobranca', '=', True)]),
                 }

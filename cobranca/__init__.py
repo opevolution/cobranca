@@ -21,8 +21,8 @@
 ###############################################################################
 
 
-import cnab_payer_info
-import cnab_payee_info
+import boleto
+import cobranca
 import res_company
 import res_partner
 import file_format

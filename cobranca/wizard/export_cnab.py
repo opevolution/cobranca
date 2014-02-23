@@ -37,7 +37,7 @@ import re
 #from collections import OrderedDict
 
 from generator import CNABGenerator
-from boleto import BoletoGenerator
+from emiteboleto import BoletoGenerator
 
 _logger = logging.getLogger(__name__)
 
@@ -76,12 +76,28 @@ class CNABExporter(osv.osv_memory):
     
     _cnab_name = ''
     
+    _debug = True
+    
+    def log(self, msg, value):
+        if self._debug == True:
+            _logger.info(self._name+"=["+str(msg)+": '"+str(value)+"']")
+            
     def _round(self, v):
         v = float_to_decimal(v)
         return (v * Decimal('100')).quantize(1)
     
     def _only_digits(self, v):
         return re.sub('[^0-9]', '', v)
+    
+    def _get_param(self, cr, uid, PartnerBankId, param):
+        res = False
+        CnabCustomPool = self.pool.get('cnab.custom_property')
+        CnabCustom_Ids = CnabCustomPool.search(cr, uid, [('name','=',param),('partner_bank_id','=',PartnerBankId)])
+        if CnabCustom_Ids:
+            CnabCustomId = CnabCustom_Ids[0]
+            [CnabCustom] = CnabCustomPool.browse(cr, uid, [CnabCustomId])
+            res = CnabCustom.value
+        return res
     
     def _get_address(self, partner):
         parts = []
@@ -123,33 +139,102 @@ class CNABExporter(osv.osv_memory):
     def _calc_juros_dia(self, valor, taxa):
         return round((valor * taxa)/30,2)
     
-    def _invoice(self, user, invoice, conta):
+    def _invoice(self, cr, user, ids, invoice, conta):
         
 #         partner_cnab_info = invoice.partner_id.cnab_info_id
 #         assert partner_cnab_info != False, "Partner must have CNAB information"
 #         company_cnab_info = user.company_id.cnab_info_id
 #         assert company_cnab_info != False, "Company must have CNAB information"
 #         rateio_credito = ("R" if company_cnab_info.rateio_credito else " ")
+        def preenche_sacador_BB(self, cr, uid, idSacador):
+            res = False
+            sacador = self.pool.get('res.partner').browse(cr, uid, idSacador) 
+            self.log('CNPJ', sacador.cnpj_cpf)
+            self.log('Nome', sacador.legal_name)
+            docSac = self._only_digits(str(sacador.cnpj_cpf))
+            if sacador.is_company:
+                res = str(somente_ascii(sacador.legal_name[:21]).rjust(21)+' CNPJ'+docSac)
+            else:
+                res = str(somente_ascii(sacador.legal_name[:25]).rjust(21)+' CPF'+docSac)
+            self.log('Sacador', res)    
+            return res
+        
+        [wizard] = self.browse(cr, user.id, ids)
+        
+        InfoCob = False
+        
+        if wizard.cob_info_id:
+            [InfoCob] = self.pool.get("boleto.partner_config").browse(cr, user.id, [wizard.cob_info_id.id])
+
+        self.log("wizard ",str(wizard.sacador_id.id)) 
+        
         identificacao_inscricao_sacado = ('01' if not invoice.partner_id.is_company else '02')
         val_fatura = invoice.amount_total
         res = False
         if conta.bank.bic == "001":
-            if conta.tx_multa and conta.tx_multa > 0:
-                codigo_multa = '1'
-                novadata = datetime.strptime(invoice.date_due, '%Y-%m-%d') + timedelta(days=1)
-                data_ini_cob = novadata.strftime("%d%m%y")
-                valor_multa = round(val_fatura*conta.tx_multa,2)
-            else:
-                codigo_multa = '9'
-                data_ini_cob = '000000'
-                valor_multa = 0
+            NossoNumero = "0000000000" 
+            IndSacador = ' '
+            TxtSacador = ' '
+            codigo_multa = '9'
+            data_ini_cob = '000000'
+            valor_multa = 0
+            valor_juros_dia = 0
+            NroDiaProt = 0
+            InstCodific = 0
+            MsgProtesto = ''
+
+            if conta.cod_carteira in ['12','15','17'] and conta.enable_boleto == True:
+                NossoNumero = "%s%s" % (conta.nro_convenio.rjust(7),str(invoice.number).zfill(10))
+                self.log("Nosso Número", NossoNumero)
+            
+            if wizard.sacador_id:
+                IndSacador = 'A'
+                self.log("Sacador ID",str(wizard.sacador_id.id))
+                TxtSacador = preenche_sacador_BB(self, cr, user.id, wizard.sacador_id.id)
                 
-            if conta.tx_juros and conta.tx_juros > 0:
-                valor_juros_dia = self._calc_juros_dia(val_fatura,conta.tx_juros)
+            self.log("Sacador",str(TxtSacador))
+            
+            if InfoCob:
+                if InfoCob.tx_multa > 0:
+                    codigo_multa = '1'
+                    novadata = datetime.strptime(invoice.date_due, '%Y-%m-%d') + timedelta(days=1)
+                    data_ini_cob = novadata.strftime("%d%m%y")
+                    valor_multa = round(val_fatura*InfoCob.tx_multa,2)
+                if InfoCob.tx_juros and InfoCob.tx_juros > 0:
+                    valor_juros_dia = self._calc_juros_dia(val_fatura,InfoCob.tx_juros)
             else:
-                valor_juros_dia = 0
-            _logger.info('Juros ao dia: '+str(valor_juros_dia))
-            _logger.info('Multa após o venc: '+str(valor_multa)+' a partir da data de '+data_ini_cob)
+                if conta.tx_multa and conta.tx_multa > 0:
+                    codigo_multa = '1'
+                    novadata = datetime.strptime(invoice.date_due, '%Y-%m-%d') + timedelta(days=1)
+                    data_ini_cob = novadata.strftime("%d%m%y")
+                    valor_multa = round(val_fatura*conta.tx_multa,2)
+                if conta.tx_juros and conta.tx_juros > 0:
+                    valor_juros_dia = self._calc_juros_dia(val_fatura,conta.tx_juros)
+
+            if InfoCob:
+                NroDiaProt = InfoCob.dias_protesto
+            else:
+                NroDiaProt = conta.dias_protesto
+            self.log("Nro Dias Protesto", str(NroDiaProt))
+                
+            if NroDiaProt in [3,4,5,10,15,20,25,30,45]:
+                InstCodific = NroDiaProt
+                MsgProtesto = u'Protestar no %d dia útil após vencido' % NroDiaProt
+                NroDiaProt = 0
+            elif NroDiaProt >= 6 and NroDiaProt <= 29:
+                InstCodific = 6
+                MsgProtesto = u'Protestar no %d dia após vencido' % NroDiaProt
+            else:
+                InstCodific = 7
+                NroDiaProt = 0
+                MsgProtesto = False
+
+            self.log("Intrução Codificadas", str(InstCodific))
+            self.log("Nro Dias Protesto", str(NroDiaProt))
+                            
+            self.log('Juros ao dia',str(valor_juros_dia))
+            self.log('Multa após o vencimento',str(valor_multa)+' a partir da data de '+data_ini_cob)
+
             res= [{
                     'IDReg': '7',
                     'TpInscrCedente': '02',
@@ -160,11 +245,9 @@ class CNABExporter(osv.osv_memory):
                     'DvContaCorrente': conta.acc_number_dig,
                     'NroConvCobCedente': conta.nro_convenio,
                     'CodCtrolEmpresa': str(invoice.id),
-                    'NossoNumero': 0,
-                    'NroPrestacao': 0,
-                    'GrupoValor': 0,
-                    'IndMensagemSacAva': ' ',
-                    'VariacaoCarteira': 0,
+                    'NossoNumero': NossoNumero,
+                    'IndMensagemSacAva': IndSacador,
+                    'VariacaoCarteira': self._get_param(cr, user.id, conta.id, "VariacaoCarteira"),
                     'ContaCaucao': 0,
                     'NumeroBordero': 0,
                     'TipoCobranca': ' ',
@@ -173,10 +256,10 @@ class CNABExporter(osv.osv_memory):
                     'NroTitulo': invoice.number,
                     'DataVencimentoTitulo': datetime.strptime(invoice.date_due, '%Y-%m-%d'),
                     'ValorTitulo': self._round(invoice.amount_total),
-                    'EspecieTitulo': 12,
-                    'AceiteTitulo': 'N',
+                    'EspecieTitulo': self._get_param(cr, user.id, conta.id, "EspecieTitulo"),
+                    'AceiteTitulo': self._get_param(cr, user.id, conta.id, "AceiteTitulo"),
                     'DataEmissaoTitulo': datetime.strptime(invoice.date_invoice, '%Y-%m-%d'),
-                    'InstrucaoCodificada1': 0,
+                    'InstrucaoCodificada1': InstCodific,
                     'InstrucaoCodificada2': 0,
                     'MoraDiaria': self._round(valor_juros_dia),
                     'ValorJurosDia': valor_juros_dia,
@@ -193,7 +276,9 @@ class CNABExporter(osv.osv_memory):
                     'CepSacado': invoice.partner_id.zip,
                     'CidadeSacado': somente_ascii(invoice.partner_id.l10n_br_city_id.name).upper(),
                     'UfCidadeSacado': invoice.partner_id.state_id.code,
-                    'Avalista-2Mensagem': ' ',
+                    'Avalista-2Mensagem': TxtSacador,
+                    'DiasProtesto': NroDiaProt,
+                    'MsgProtesto': MsgProtesto,
                     }, {
                     'IDReg': '51',
                     'TipoServico': '99',
@@ -258,7 +343,7 @@ class CNABExporter(osv.osv_memory):
     def _trailer(self):
         return {'IDReg': '9'}
     
-    def prepare_data(self, cr, uid, format, account_id, invoice_ids):
+    def prepare_data(self, cr, uid, ids, format, account_id, invoice_ids):
         invoice_pool = self.pool.get('account.invoice')
         [user] = self.pool.get('res.users').browse(cr, uid, [uid])
         [conta] = self.pool.get('res.partner.bank').browse(cr, uid, [account_id])
@@ -266,7 +351,7 @@ class CNABExporter(osv.osv_memory):
         lines = [self._header(cr, user, conta)]
         
         for invoice in invoice_pool.browse(cr, uid, invoice_ids):
-            line = self._invoice(user, invoice, conta)
+            line = self._invoice(cr, user, ids, invoice, conta)
             if conta.enable_boleto:
                 self.geraBoleto(cr, user, invoice, conta, line)
             lines.extend(line)
@@ -314,6 +399,30 @@ class CNABExporter(osv.osv_memory):
         
         return result
     
+    def do_save_file(self, cr, uid, ids, file):
+        context = {}
+        [wizard] = self.browse(cr, uid, ids) 
+        ArqName = wizard.filename
+        ArquivoRemessa = self.pool.get('cnab.arquivo_remessa')
+        valor = {
+                 'bank_partner_id': wizard.bank_partner_id.id,
+                 'sacador_id': wizard.sacador_id.id,
+                 'cob_info_id': wizard.cob_info_id.id,
+                 'nro_sequencia': wizard.Nro_Seq,
+                 'data_in': wizard.data_in,
+                 }
+        _logger.info(str(valor))
+        idRemessa = ArquivoRemessa.create(cr,uid,valor,context)
+        attach_id=self.pool.get('ir.attachment').create(cr, uid, {
+                                                                  'name': ArqName,
+                                                                  'datas': base64.encodestring(file),
+                                                                  'datas_fname': ArqName,
+                                                                  'res_model': 'cnab.arquivo_remessa',
+                                                                  'res_id': idRemessa,
+                                                                    }, context=context)
+        
+        return True
+    
     def serialize(self, cr, uid, format, data):
 #        fake_data = [OrderedDict([(u'IDReg', '0'), (u'IdentificacaoRemessa', 1), (u'LiteralRemessa', 'REMESSA'), (u'CodigoServico', 1), (u'LiteralServico', 'COBRANCA'), (u'CodigoEmpresa', 74017), (u'NomeEmpresa', 'ASSOCIACAO MANTENEDORA ASSISTE'), (u'NumeroBanco', 237), (u'NomeBanco', 'BRADESCO'), (u'DataGravacaoArquivo', datetime.date(2013, 4, 24)), (u'Branco', False), (u'IdentificacaoSistema', 'MX'), (u'NroSequencialArquivo', 9000461), (u'Branco2', False), (u'NroSequencialRegistroH', 1)]), OrderedDict([(u'IDReg', '1'), (u'AgenciaDebito', '00000'), (u'DigitoAgenciaDebito', False), (u'RazaoContaCorrenteDebito', '00000'), (u'ContaCorrenteDebito', '0000000'), (u'DigitoContaCorrenteDebito', '0'), (u'Zero', 0), (u'Carteira', 9), (u'AgenciaCedente', 160), (u'ContaCorrente', 82800), (u'DigitoContaCorrente', 9), (u'NroControleParticipante', False), (u'CodigoBanco', 237), (u'Zeros', 0), (u'NossoNumero', 130001042568L), (u'DescontoBonificacaoDia', 0), (u'EmissaoPapeletaCobranca', 1), (u'EmissaoPapeletaDebitoAutomatico', 'S'), (u'Branco3', False), (u'IndicadorRateioCredito', False), (u'AvisoDebitoAutomatico', False), (u'Branco4', False), (u'IdentificacaoOcorrencia', 1), (u'NDocumento', '0000080631'), (u'DataVencimentoTitulo', datetime.date(2013, 5, 15)), (u'ValorTitulo', 6250), (u'BancoEncarregadoCobranca', 0), (u'AgenciaDepositaria', 0), (u'EspecieTitulo', 1), (u'Identificacao', 'N'), (u'DataEmissaoTitulo', datetime.date(2013, 4, 24)), (u'1Instrucao', 0), (u'2Instrucao', 0), (u'MoraDiaria', 0), (u'DataLimiteDesconto', 150513), (u'ValorDesconto', 0), (u'ValorIOF', 0), (u'ValorAbatimento', 0), (u'IdentificacaoInscricaoSacado', 1), (u'NInscricaoSacado', 20507679865L), (u'NomeSacado', 'SANDRA RIBEIRO DA SILVA ROCHA'), (u'EnderecoCompleto', 'R ESTRELA D OESTE,310'), (u'1Mensagem', False), (u'Cep', '06721010'), (u'Avalista-2Mensagem', False), (u'NroSequencialRegistroD', 2)]), OrderedDict([(u'IDReg', '2'), (u'Mensagem1', 'TAXA CERIMONIA DE FORMATURA                                                    .'), (u'Mensagem2', '941 FELIPE SILVA ROCHA                                                         .'), (u'Mensagem3', '8 PARCELAS                                                                     .'), (u'Mensagem4', 'APOS 60 DIAS PAGAVEL SOMENTE NA TESOURARIA DO COLEGIO                          .'), (u'Filler', False), (u'Carteira', 9), (u'Agencia', 160), (u'ContaCorrente', 82800), (u'DigitoCC', '9'), (u'NossoNumero', '13000104256'), (u'DigitoNN', '8'), (u'sequencia', 3)]), OrderedDict([(u'IDReg', '9'), (u'Branco5', False), (u'NroSequencialRegistroT', 4)])]
         generator = CNABGenerator()
@@ -327,10 +436,11 @@ class CNABExporter(osv.osv_memory):
         account_id = wizard.bank_partner_id.id
         #_logger.info('Banco ID:' + str(account_id))
         format = self.load_format(cr, uid, account_id)
-        data = self.prepare_data(cr, uid, format, account_id, invoice_ids)
+        data = self.prepare_data(cr, uid, ids, format, account_id, invoice_ids)
         result = self.serialize(cr, uid, format, data)
         encoded_result = base64.b64encode(result)
         self.write(cr, uid, [wizard.id], {'Nro_Seq': self._sequencia,'filename': self._cnab_name,'file': encoded_result, 'state': 'done'})
+        self.do_save_file(cr, uid, [wizard.id], result)
         
         return {
                 'type': 'ir.actions.act_window',
@@ -345,9 +455,10 @@ class CNABExporter(osv.osv_memory):
     _columns = {
                 'file': fields.binary('File', readonly=True),
                 'filename': fields.char('Filename', size=128),
-                'bank_id': fields.many2one('res.bank', 'Bank', domain=[('enable_cnab', '=', True)]),
                 'bank_partner_id': fields.many2one('res.partner.bank', u'Cobrança',required=True,domain=[('enable_cnab', '=', True)]),
-                'Nro_Seq': fields.integer('Sequencia'),
+                'sacador_id': fields.many2one('res.partner', u'Sacador'),
+                'cob_info_id': fields.many2one('boleto.partner_config', u'Padrão Cobrança'),
+                'Nro_Seq': fields.integer('Sequencia do CNAB'),
                 'data_in': fields.date(u'Data Criação',), 
                 #'format': fields.many2one('cnab.file_format', 'Format', required=True),
                 'state': fields.selection([('init', 'init'), ('done', 'done')], 'state', readonly=True),

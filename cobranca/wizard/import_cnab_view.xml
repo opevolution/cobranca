@@ -31,7 +31,7 @@
         id="menu_cnab_importer" 
         name="Importar Arquivo-Retorno"
         action="action_cnab_importer" 
-        parent="menu_cnab_root"
+        parent="menu_cob_root"
         sequence="1" />
     </data>
     

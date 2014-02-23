@@ -8,7 +8,7 @@
         <field name="inherit_id" ref="base.view_company_form"/>
         <field name="arch" type="xml">
             <field name="currency_id" position="before">
-                <field name="cnab_info_id"/>
+                <field name="cob_banc_id"/>
             </field>
         </field>
     </record>

@@ -33,9 +33,16 @@ TYPE_ADAPTERS = {
                  'CHARACTER': lambda s: s.upper(),
                 }
 
-DEBUG = True
 
 class CNABGenerator(object):
+    
+    _name = 'CNABGenerator'
+    _debug = False
+
+    def log(self, msg, value):
+        if self._debug == True:
+            _logger.info(self._name+"=["+str(msg)+": '"+str(value)+"']")
+
    
     def get_record_formats(self, parent):
         record_formats = dict((r.identifier, r) for r in parent.records_ids)
@@ -64,19 +71,20 @@ class CNABGenerator(object):
         result_file = StringIO()
         Nro = 0
         for record in records:
-            if DEBUG:
+            if self._debug:
                 linha = '|'
             else:
                 linha = ''
             Nro = Nro + 1
             record_format = record_formats[record['IDReg']]
             for field in record_format.fields_ids:
-                if DEBUG:
+                if self._debug:
+                    self.log('FieldName - FieldValue',str(field.name) + ' - ' + str(field.value))
                     valor = self.generate_field(field, record)+'|'
                 else:
                     valor = self.generate_field(field, record)
                 linha = linha + valor
-            if DEBUG == False and len(linha) != 400:
+            if self._debug == False and len(linha) != 400:
                 _logger.warning('Quantidade de caracteres na Linha '+str(Nro)+' = '+str(len(linha)))
             result_file.write(linha+'\r\n')
         result_file.seek(0)
@@ -97,6 +105,7 @@ class CNABGenerator(object):
 #         return result_file
     
     def generate_field(self, field, record):
+        self.log('erro','1')
         if field.value is False:
             try:
                 value = record[field.name]
@@ -104,12 +113,17 @@ class CNABGenerator(object):
                 value = self.pad_value(field.padding, field.length, '')
         else:
             value = field.value
+        self.log('erro','2')
         if value is False or value is None:
             value = ''
+        self.log('erro','3')
         if field.value_type:
+            self.log('erro','4')
             adapter = TYPE_ADAPTERS[field.value_type]
             value = adapter(value)
+        self.log('value',str(value))
         value = value[:field.length]
+        self.log('erro','5')
         value = self.pad_value(field.padding, field.length, value)
         return value
 

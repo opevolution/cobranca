@@ -2,22 +2,6 @@
 <openerp>
     <data>
         
-        <record id="cnab_res_bank_form" model="ir.ui.view">
-            <field name="name">cnab.bank</field>
-            <field name="view_type">form</field>
-            <field name="model">res.bank</field>
-            <field name="inherit_id" ref="base.view_res_bank_form"/>
-            <field name="arch" type="xml">
-                <group string="Communication" position="after">
-                    <group string="CNAB">
-                        <field name="enable_cnab"/>
-                        <field name="cnab_name" attrs="{'required': [('enable_cnab','=',True)], 'readonly': [('enable_cnab','=',False)]}"/>
-                        <field name="cnab_code" attrs="{'required': [('enable_cnab','=',True)], 'readonly': [('enable_cnab','=',False)]}"/>
-                    </group>
-                </group>
-            </field>
-        </record>
- 
  	    <record id="view_partner_bank_boleto_form_inherit" model="ir.ui.view">
 	        <field name="name">Partner Bank Accounts Cobranca</field>
 	        <field name="model">res.partner.bank</field>
@@ -34,6 +18,7 @@
 		                      	<field name="cod_empresa" attrs="{'invisible': [('enable_cobranca','=', False)]}"/>
 		                      	<field name="tx_juros" attrs="{'invisible': [('enable_cobranca','=', False)]}"/>
 		                      	<field name="tx_multa" attrs="{'invisible': [('enable_cobranca','=', False)]}"/>
+		                      	<field name="dias_protesto" attrs="{'invisible': [('enable_cobranca','=', False)]}"/>
 		                    </group>
 		                    <group>
 		                      	<field name="enable_boleto" attrs="{'invisible': [('enable_cobranca','=', False)]}"/>
@@ -45,6 +30,9 @@
 						</group>		          
 	                    <group col="4" colspan="2" attrs="{'invisible': [('enable_cobranca','=', False)]}">
 	                    	<field name="instrucoes" attrs="{'invisible': ['|',('enable_cobranca','=', False),('enable_boleto','=', False)]}"/>
+	                    </group>
+	                    <group>
+	                    	<field name="custom_property_ids" attrs="{'invisible': [('enable_cobranca','=', False)]}"/>
 	                    </group>
 	                </group>
 	            </group>

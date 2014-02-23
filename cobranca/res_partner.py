@@ -32,5 +32,5 @@ class Partner(osv.osv):
     _inherit = 'res.partner'
 
     _columns = {
-                'cnab_info_id': fields.many2one('cnab.payer_info', u'CNAB Informação'),
+                'cob_info_id': fields.many2one('boleto.partner_config', u'Padrão Cobrança'),
                }

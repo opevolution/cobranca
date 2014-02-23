@@ -1,6 +1,72 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
     <data>
-    
-    </data>    
+
+        <record id="cnab_custom_property_tree" model="ir.ui.view">
+            <field name="name">cnab.custom_property_tree</field>
+            <field name="model">cnab.custom_property</field>
+            <field name="arch" type="xml">
+                <tree string="Propriedade Personalizada CNAB">
+                    <field name="name"/>
+                    <field name="value"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="cnab_custom_property_form" model="ir.ui.view">
+            <field name="name">cnab.custom_property_form</field>
+            <field name="model">cnab.custom_property</field>
+            <field name="arch" type="xml">
+                <form string="Propriedade Personalizada CNAB" version="7.0">
+					<group>
+                        <field name="name"/>
+                        <field name="value"/>
+					</group>
+                </form>
+            </field>
+        </record>
+        
+		<!-- View CNAB arquivos de remessa -->
+		<record model="ir.ui.view" id="view_cnab_arquivo_remessa_tree">
+			<field name="name">cnab.arquivo_remessa_tree</field>
+			<field name="model">cnab.arquivo_remessa</field>
+			<field name="arch" type="xml">
+				<tree string="Arquivos CNAB de remessa">
+					<field name="data_in"/>
+					<field name="nro_sequencia"/>
+					<field name="bank_partner_id"/>
+				</tree>					
+			</field>
+		</record>
+
+		<record id="cnab_arquivo_remessa_form" model="ir.ui.view">
+		    <field name="name">cnab.arquivo_remessa_form</field>
+		    <field name="model">cnab.arquivo_remessa</field>
+		    <field name="arch" type="xml">
+		        <form string="Arquivos CNAB de remessa" version="7.0">
+		            <group col="4">
+			            <group>
+			                <field name="bank_partner_id"/>
+							<field name="sacador_id"/>
+	                		<field name="cob_info_id"/>
+			            </group>
+			            <group>
+			                <field name="nro_sequencia"/>
+			                <field name="data_in"/>
+			            </group>
+			        </group>
+		        </form>
+		    </field>
+		</record>
+		
+		<record model="ir.actions.act_window" id="action_cnab_arquivo_remessa">
+			<field name="name">Arquivo CNAB de Remessa</field>
+			<field name="res_model">cnab.arquivo_remessa</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+		</record>
+		
+		<menuitem action="action_cnab_arquivo_remessa" id="menu_cnab_exporter_tree" parent="menu_cob_root"/>
+        
+	</data>
 </openerp>

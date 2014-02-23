@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+  <data>
+  	<!-- Boletos -->
+
+    <record model="ir.ui.view" id="view_boleto_tree">
+      <field name="name">boleto.tree</field>
+      <field name="model">boleto.boleto</field>
+      <field name="arch" type="xml">
+      	<tree string="Boletos">
+      		<field name="sacado"/>
+      		<field name="banco"/>
+      		<field name="valor"/>
+      		<field name="nosso_numero"/>
+      		<field name="numero_documento"/>
+      		<field name="data_documento"/>
+      		<field name="data_vencimento"/>
+      		<field name="valor"/>
+		</tree>
+	  </field>
+	</record>
+
+	<record model="ir.ui.view" id="view_boleto_form">
+		<field name="name">boleto.form</field>
+		<field name="model">boleto.boleto</field>
+		<field name="arch" type="xml">
+			<form string="Boleto" version="7.0">
+				<header>
+					<button name="btn_cancel" string="Cancelar" states="enviado"/>
+					<field name="state" widget="statusbar" statusbar_visible="novo,enviado,recebido,cancelado"/>
+				</header>
+				<sheet string="Repairs order">
+					<group>
+						<field name="sacado" domain="[('customer','=','True')]"/>
+						<field name="endereco"/>
+					</group>
+					<group>
+						<group>
+							<field name="cedente"/>
+							<field name="nosso_numero"/>
+							<field name="banco"/>
+							<field name="agencia_cedente"/>
+							<field name="conta_cedente"/>
+							<field name="convenio"/>
+							<field name="carteira"/>							
+						</group>
+						<group>
+							<field name="move_line_id"/>
+							<field name="numero_documento"/>
+							<field name="data_documento"/>
+							<field name="data_processamento"/>
+							<field name="data_vencimento"/>
+							<field name="valor"/>
+						</group>
+					</group>
+					<group>
+						<field name="instrucoes"/>
+					</group>
+				</sheet>
+			</form>
+		</field>
+	</record>
+		
+	<record model="ir.actions.act_window" id="action_boleto_tree">
+		<field name="name">Boletos</field>
+		<field name="res_model">boleto.boleto</field>
+	</record>
+	
+	<menuitem action="action_boleto_tree" id="menu_boleto_tree" parent="menu_cob_root"/>
+
+
+	<!-- boleto_partner_config -->
+		
+    <record model="ir.ui.view" id="view_boleto_partner_config_tree">
+      <field name="name">boleto.partner_config.tree</field>
+      <field name="model">boleto.partner_config</field>
+      <field name="arch" type="xml">
+      	<tree string="Configuração Parceiro">
+      		<field name="name"/>
+      		<field name="convenio_id"/>
+      		<field name="tx_juros"/>
+      		<field name="tx_multa"/>
+      		<field name="dias_protesto"/>
+		</tree>
+	  </field>
+	</record>
+
+	<record model="ir.ui.view" id="view_boleto_partner_config_form">
+		<field name="name">boleto.partner_config.form</field>
+		<field name="model">boleto.partner_config</field>
+		<field name="arch" type="xml">
+			<form string="Padrão de Boleto" version="7.0">
+				<group>
+					<group>
+						<field name="name"/>
+						<field name="convenio_id"/>
+					</group>
+					<group>
+						<field name="dias_protesto"/>
+						<field name="tx_juros"/>
+						<field name="tx_multa"/>
+					</group>
+				</group>
+				<group>
+					<field name="instrucoes"/>
+				</group>
+			</form>
+		</field>
+	</record>
+
+	<record model="ir.actions.act_window" id="action_boleto_partner_config">
+		<field name="name">Padrão Boleto</field>
+		<field name="res_model">boleto.partner_config</field>
+	</record>
+	
+	<menuitem action="action_boleto_partner_config" id="action_boleto_partner_config_tree" parent="menu_cob_config"/>
+	
+  </data>
+</openerp>
+	

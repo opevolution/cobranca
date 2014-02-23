@@ -3,9 +3,15 @@
     <data>
     
         <menuitem
-            id="menu_cnab_root"
-            name="CNAB"
+            id="menu_cob_root"
+            name="Cobrança"
             parent="account.menu_finance"
+            sequence="14"/>
+
+        <menuitem
+            id="menu_cob_config"
+            name="Cobrança"
+            parent="account.menu_configuration_misc"
             sequence="14"/>
             
     </data>
