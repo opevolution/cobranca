@@ -182,6 +182,8 @@ class CNABExporter(osv.osv_memory):
             NroDiaProt = 0
             InstCodific = 0
             MsgProtesto = ''
+            DocSacador = ''
+            NomeSacador = ''
 
             if conta.cod_carteira in ['12','15','17'] and conta.enable_boleto == True:
                 NossoNumero = "%s%s" % (conta.nro_convenio.rjust(7),str(invoice.number).zfill(10))
@@ -189,9 +191,13 @@ class CNABExporter(osv.osv_memory):
             
             if wizard.sacador_id:
                 IndSacador = 'A'
+                DocSacador = wizard.sacador_id.cnpj_cpf
+                NomeSacador = wizard.sacador_id.legal_name
                 self.log("Sacador ID",str(wizard.sacador_id.id))
                 TxtSacador = preenche_sacador_BB(self, cr, user.id, wizard.sacador_id.id)
                 
+            self.log("Documento Sacador",str(DocSacador))
+            self.log("Nome Sacador",str(NomeSacador))
             self.log("Sacador",str(TxtSacador))
             
             if InfoCob:
@@ -276,6 +282,8 @@ class CNABExporter(osv.osv_memory):
                     'CepSacado': invoice.partner_id.zip,
                     'CidadeSacado': somente_ascii(invoice.partner_id.l10n_br_city_id.name).upper(),
                     'UfCidadeSacado': invoice.partner_id.state_id.code,
+                    'DocSacador': DocSacador,
+                    'NomeSacador': NomeSacador,
                     'Avalista-2Mensagem': TxtSacador,
                     'DiasProtesto': NroDiaProt,
                     'MsgProtesto': MsgProtesto,

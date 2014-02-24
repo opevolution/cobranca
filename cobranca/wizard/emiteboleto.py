@@ -58,7 +58,18 @@ class BoletoGenerator(object):
            
         _logger.info('Após vencimento, multa de R$ '+str(val_multa)+' e mora de R$ '+str(juros_dia))
         
-        MsgProtesto = linha[0]['MsgProtesto'] 
+        MsgProtesto = linha[0]['MsgProtesto']
+
+        MsgSacador = False
+        NomeSacador = False
+        DocSacador =  False
+
+
+        if linha[0]['IndMensagemSacAva'] == 'A':
+            if linha[0]['DocSacador'] and linha[0]['NomeSacador']:
+                MsgSacador = True
+                NomeSacador = linha[0]['NomeSacador']
+                DocSacador =  linha[0]['DocSacador'] 
         
         boleto.cedente = str(user.company_id.partner_id.legal_name)
         boleto.cedente_logradouro = user.company_id.partner_id.street + ', ' + user.company_id.partner_id.number
@@ -75,8 +86,9 @@ class BoletoGenerator(object):
         boleto.sacado_bairro = invoice.partner_id.district
         boleto.sacado_cep = invoice.partner_id.zip
         
-        boleto.sacador_documento = "779.529.449-91"
-        boleto.sacador_nome = "Alexandre Defendi"
+        if MsgSacador is True:
+            boleto.sacador_documento = DocSacador
+            boleto.sacador_nome = NomeSacador
 
         boleto.cedente_documento = str(user.company_id.partner_id.cnpj_cpf)
         boleto.carteira = str(conta.cod_carteira)
