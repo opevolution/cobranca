@@ -22,7 +22,7 @@
 
 {
     'name': 'Cobranca',
-    'version': '0.003',
+    'version': '0.004',
     'category': 'Accounting & Finance',
     'sequence': 1,
     'complexity': 'normal',

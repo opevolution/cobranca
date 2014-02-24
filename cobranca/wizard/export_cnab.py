@@ -236,11 +236,11 @@ class CNABExporter(osv.osv_memory):
                 MsgProtesto = False
             try:
                 if invoice.contract_id:
-                    Demon = u'REFERENTE AO CONTRATO NÚMERO %s, NFS-e NÚMERO %d' % (invoice.contract_id.name, invoice.id )
+                    Demon = u'REFERENTE AO CONTRATO NÚMERO %s, NFS-e NÚMERO %06d' % (invoice.contract_id.name, int(invoice.internal_number) )
                 else:
-                    Demon = u'REFERENTE A NFS-e NÚMERO %d' % (invoice.id )
+                    Demon = u'REFERENTE A NFS-e NÚMERO %06d' % (int(invoice.internal_number) )
             except:
-                Demon = u'REFERENTE A NFS-e NÚMERO %d' % (invoice.id )
+                Demon = u'REFERENTE A NFS-e NÚMERO %06d' % (int(invoice.internal_number) )
                 
             self.log("Intrução Codificadas", str(InstCodific))
             self.log("Nro Dias Protesto", str(NroDiaProt))
@@ -367,10 +367,11 @@ class CNABExporter(osv.osv_memory):
         lines = [self._header(cr, user, conta)]
         
         for invoice in invoice_pool.browse(cr, uid, invoice_ids):
-            line = self._invoice(cr, user, ids, invoice, conta)
-            if conta.enable_boleto:
-                self.geraBoleto(cr, user, invoice, conta, line)
-            lines.extend(line)
+            if not invoice.state == 'draft':
+                line = self._invoice(cr, user, ids, invoice, conta)
+                if conta.enable_boleto:
+                    self.geraBoleto(cr, user, invoice, conta, line)
+                lines.extend(line)
         lines.append(self._trailer())
          
         #add sequence numbers
