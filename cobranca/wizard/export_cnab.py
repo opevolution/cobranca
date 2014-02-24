@@ -66,6 +66,7 @@ else:
         return result
 
 def somente_ascii(valor):
+    ret = ""
     if valor:
         NumberTypes = (types.IntType, types.LongType, types.FloatType, types.ComplexType)
         if isinstance(valor, basestring):
@@ -73,8 +74,6 @@ def somente_ascii(valor):
             ret = unicodedata.normalize('NFD', ant).encode('ascii', 'ignore')
         elif isinstance(valor, NumberTypes):
             ret = str(valor)
-        else:
-            ret = ''
     return ret
 
 class CNABExporter(osv.osv_memory):
