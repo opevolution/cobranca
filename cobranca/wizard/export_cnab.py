@@ -20,6 +20,7 @@
 # -versao_arquivo 0.1                                                         #
 ###############################################################################
 
+import types
 import time
 import netsvc
 import unicodedata
@@ -65,8 +66,15 @@ else:
         return result
 
 def somente_ascii(valor):
-    ant = unicode(valor)
-    ret = unicodedata.normalize('NFD', ant).encode('ascii', 'ignore')
+    if valor:
+        NumberTypes = (types.IntType, types.LongType, types.FloatType, types.ComplexType)
+        if isinstance(valor, basestring):
+            ant = unicode(valor)
+            ret = unicodedata.normalize('NFD', ant).encode('ascii', 'ignore')
+        elif isinstance(valor, NumberTypes):
+            ret = str(valor)
+        else:
+            ret = ''
     return ret
 
 class CNABExporter(osv.osv_memory):
@@ -138,6 +146,33 @@ class CNABExporter(osv.osv_memory):
     
     def _calc_juros_dia(self, valor, taxa):
         return round((valor * taxa)/30,2)
+    
+    def _verifica_erros(self, invoice, sacador=None):
+        res = ""
+        if not invoice.partner_id:
+            res = res + u'Fatura não possuí um cliente válido. \r\n' 
+        else:
+            if not invoice.partner_id.cnpj_cpf:
+                res = res + (u'Sacado %s não possuí número de CPF/CNPJ. \r\n' % invoice.partner_id.name)
+            elif not invoice.partner_id.legal_name:
+                res = res + (u'Sacado %s, falta Razão Social ou está incompleto. \r\n' % invoice.partner_id.name)
+        if invoice.state == 'draft':
+            res = res + u'Fatura não foi confirmada \r\n'
+
+        if invoice.residual <= 0:
+            res = res + u'Fatura com saldo zerado \r\n'
+        
+        if sacador:
+            if not sacador.cnpj_cpf:
+                res = res + u'Sacador não possuí número de CPF/CNPJ.\r\n'
+            elif not sacador.legal_name:
+                res = res + u'Nome do Sacador não existe ou está incompleto.\r\n'
+        
+        if res:
+            raise osv.except_osv(_('warning'), _(res))
+            return False
+        else:
+            return True
     
     def _invoice(self, cr, user, ids, invoice, conta):
         
@@ -285,9 +320,9 @@ class CNABExporter(osv.osv_memory):
                     'CnpjCpfSacado': self._only_digits(invoice.partner_id.cnpj_cpf),
                     'NomeSacado': somente_ascii(invoice.partner_id.name).upper(),
                     'EnderecoSacado': somente_ascii(invoice.partner_id.street + ', '+ invoice.partner_id.number).upper(),
-                    'BairroSacado': somente_ascii(invoice.partner_id.district).upper(),
-                    'CepSacado': invoice.partner_id.zip,
-                    'CidadeSacado': somente_ascii(invoice.partner_id.l10n_br_city_id.name).upper(),
+                    'BairroSacado': somente_ascii(invoice.partner_id.district or "").upper(),
+                    'CepSacado': invoice.partner_id.zip or "",
+                    'CidadeSacado': somente_ascii(invoice.partner_id.l10n_br_city_id.name or "").upper(),
                     'UfCidadeSacado': invoice.partner_id.state_id.code,
                     'DocSacador': DocSacador,  #Boleto
                     'NomeSacador': NomeSacador, #Boleto
@@ -361,10 +396,16 @@ class CNABExporter(osv.osv_memory):
     
     def prepare_data(self, cr, uid, ids, format, account_id, invoice_ids):
         invoice_pool = self.pool.get('account.invoice')
+        
         [user] = self.pool.get('res.users').browse(cr, uid, [uid])
         [conta] = self.pool.get('res.partner.bank').browse(cr, uid, [account_id])
         
         lines = [self._header(cr, user, conta)]
+        
+        for invoice in invoice_pool.browse(cr, uid, invoice_ids): 
+            res = self._verifica_erros(invoice)
+            if res is False:
+                return False
         
         for invoice in invoice_pool.browse(cr, uid, invoice_ids):
             if not invoice.state == 'draft':
@@ -454,20 +495,23 @@ class CNABExporter(osv.osv_memory):
         #_logger.info('Banco ID:' + str(account_id))
         format = self.load_format(cr, uid, account_id)
         data = self.prepare_data(cr, uid, ids, format, account_id, invoice_ids)
-        result = self.serialize(cr, uid, format, data)
-        encoded_result = base64.b64encode(result)
-        self.write(cr, uid, [wizard.id], {'Nro_Seq': self._sequencia,'filename': self._cnab_name,'file': encoded_result, 'state': 'done'})
-        self.do_save_file(cr, uid, [wizard.id], result)
-        
-        return {
-                'type': 'ir.actions.act_window',
-                'res_model': self._name,
-                'view_mode': 'form',
-                'view_type': 'form',
-                'res_id': wizard.id,
-                #'views': [(resource_id, 'form')],
-                'target': 'new',
-               }
+        if data:
+            result = self.serialize(cr, uid, format, data)
+            encoded_result = base64.b64encode(result)
+            self.write(cr, uid, [wizard.id], {'Nro_Seq': self._sequencia,'filename': self._cnab_name,'file': encoded_result, 'state': 'done'})
+            self.do_save_file(cr, uid, [wizard.id], result)
+            
+            return {
+                    'type': 'ir.actions.act_window',
+                    'res_model': self._name,
+                    'view_mode': 'form',
+                    'view_type': 'form',
+                    'res_id': wizard.id,
+                    #'views': [(resource_id, 'form')],
+                    'target': 'new',
+                   }
+        else:
+            return False
         
     _columns = {
                 'file': fields.binary('File', readonly=True),
