@@ -234,7 +234,14 @@ class CNABExporter(osv.osv_memory):
                 InstCodific = 7
                 NroDiaProt = 0
                 MsgProtesto = False
-
+            try:
+                if invoice.contract_id:
+                    Demon = u'REFERENTE AO CONTRATO NÚMERO %s, NFS-e NÚMERO %d' % (invoice.contract_id.name, invoice.id )
+                else:
+                    Demon = u'REFERENTE A NFS-e NÚMERO %d' % (invoice.id )
+            except:
+                Demon = u'REFERENTE A NFS-e NÚMERO %d' % (invoice.id )
+                
             self.log("Intrução Codificadas", str(InstCodific))
             self.log("Nro Dias Protesto", str(NroDiaProt))
                             
@@ -282,8 +289,9 @@ class CNABExporter(osv.osv_memory):
                     'CepSacado': invoice.partner_id.zip,
                     'CidadeSacado': somente_ascii(invoice.partner_id.l10n_br_city_id.name).upper(),
                     'UfCidadeSacado': invoice.partner_id.state_id.code,
-                    'DocSacador': DocSacador,
-                    'NomeSacador': NomeSacador,
+                    'DocSacador': DocSacador,  #Boleto
+                    'NomeSacador': NomeSacador, #Boleto
+                    'txtDemonstra': Demon, #Boleto
                     'Avalista-2Mensagem': TxtSacador,
                     'DiasProtesto': NroDiaProt,
                     'MsgProtesto': MsgProtesto,

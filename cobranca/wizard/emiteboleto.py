@@ -71,6 +71,10 @@ class BoletoGenerator(object):
                 NomeSacador = linha[0]['NomeSacador']
                 DocSacador =  linha[0]['DocSacador'] 
         
+        txtDemons = ""
+        if linha[0]['txtDemonstra']:
+            txtDemons = linha[0]['txtDemonstra']
+        
         boleto.cedente = str(user.company_id.partner_id.legal_name)
         boleto.cedente_logradouro = user.company_id.partner_id.street + ', ' + user.company_id.partner_id.number
         boleto.cedente_cidade = 'Curitiba' #user.company_id.partner_id.l10n_br_city.name
@@ -110,6 +114,10 @@ class BoletoGenerator(object):
         if MsgProtesto:
             Linha_Juros = Linha_Juros + MsgProtesto + '\r\n'
         
+        if txtDemons:
+            Linha_Juros = Linha_Juros + txtDemons  + '\r\n'
+            boleto.demonstrativo = txtDemons  + '\r\n'
+       
         if conta.instrucoes:
             boleto.instrucoes = Linha_Juros + conta.instrucoes + '\r\n'
         else:
