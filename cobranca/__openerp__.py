@@ -22,7 +22,7 @@
 
 {
     'name': 'Cobranca',
-    'version': '0.006',
+    'version': '0.015',
     'category': 'Accounting & Finance',
     'sequence': 1,
     'complexity': 'normal',
@@ -51,6 +51,7 @@
                    'wizard/file_format_loader_view.xml',
                    'wizard/export_cnab_view.xml',
                    'wizard/import_cnab_view.xml',
+                   'wizard/account_invoice_send_email_view.xml'
                    ],
     'demo_xml': [],
     'installable': True,

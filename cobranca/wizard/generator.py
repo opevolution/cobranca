@@ -105,7 +105,6 @@ class CNABGenerator(object):
 #         return result_file
     
     def generate_field(self, field, record):
-        self.log('erro','1')
         if field.value is False:
             try:
                 value = record[field.name]
@@ -113,18 +112,18 @@ class CNABGenerator(object):
                 value = self.pad_value(field.padding, field.length, '')
         else:
             value = field.value
-        self.log('erro','2')
+
         if value is False or value is None:
             value = ''
-        self.log('erro','3')
+
         if field.value_type:
-            self.log('erro','4')
             adapter = TYPE_ADAPTERS[field.value_type]
             value = adapter(value)
-        self.log('value',str(value))
+            
         value = value[:field.length]
-        self.log('erro','5')
+
         value = self.pad_value(field.padding, field.length, value)
+
         return value
 
 #     def generate_field(self, field, record, result_file):

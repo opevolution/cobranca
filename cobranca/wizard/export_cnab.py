@@ -131,7 +131,7 @@ class CNABExporter(osv.osv_memory):
                     'NomeCedente': somente_ascii(user.company_id.partner_id.legal_name).upper(),
                     'DataGravacaoArquivo': date.today(),
                     'NroSequencialRemessa': self._sequencia,
-                    'NroConvLider': 0,
+                    'NroConvLider': conta.nro_convenio,
                    }
         elif conta.bank.bic == "999":
             res = {
@@ -155,8 +155,8 @@ class CNABExporter(osv.osv_memory):
                 res = res + (u'Sacado %s não possuí número de CPF/CNPJ. \r\n' % invoice.partner_id.name)
             elif not invoice.partner_id.legal_name:
                 res = res + (u'Sacado %s, falta Razão Social ou está incompleto. \r\n' % invoice.partner_id.name)
-        if invoice.state == 'draft':
-            res = res + u'Fatura não foi confirmada \r\n'
+        if invoice.state != 'open':
+            res = res + u'Você selecionou fatura(s) que não esta(ão) em aberto. \r\n'
 
         if invoice.residual <= 0:
             res = res + u'Fatura com saldo zerado \r\n'
@@ -317,10 +317,10 @@ class CNABExporter(osv.osv_memory):
                     'ValorAbatimento': 0,
                     'TipoInscSacado': identificacao_inscricao_sacado,
                     'CnpjCpfSacado': self._only_digits(invoice.partner_id.cnpj_cpf),
-                    'NomeSacado': somente_ascii(invoice.partner_id.name).upper(),
+                    'NomeSacado': somente_ascii(invoice.partner_id.legal_name).upper(),
                     'EnderecoSacado': somente_ascii(invoice.partner_id.street + ', '+ invoice.partner_id.number).upper(),
                     'BairroSacado': somente_ascii(invoice.partner_id.district or "").upper(),
-                    'CepSacado': invoice.partner_id.zip or "",
+                    'CepSacado': self._only_digits(invoice.partner_id.zip or ""),
                     'CidadeSacado': somente_ascii(invoice.partner_id.l10n_br_city_id.name or "").upper(),
                     'UfCidadeSacado': invoice.partner_id.state_id.code,
                     'DocSacador': DocSacador,  #Boleto

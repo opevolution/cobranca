@@ -21,6 +21,8 @@
 ###############################################################################
 
 import logging
+import types
+import unicodedata
 from pyboleto.bank.real import BoletoReal
 from pyboleto.bank.bradesco import BoletoBradesco
 from pyboleto.bank.caixa import BoletoCaixa
@@ -34,6 +36,17 @@ except ImportError:
     from StringIO import StringIO
 
 _logger = logging.getLogger(__name__)
+
+def somente_ascii(valor):
+    ret = ""
+    if valor:
+        NumberTypes = (types.IntType, types.LongType, types.FloatType, types.ComplexType)
+        if isinstance(valor, basestring):
+            ant = unicode(valor)
+            ret = unicodedata.normalize('NFD', ant).encode('ascii', 'ignore')
+        elif isinstance(valor, NumberTypes):
+            ret = str(valor)
+    return ret
 
 class BoletoGenerator(object):
     
@@ -74,6 +87,8 @@ class BoletoGenerator(object):
         txtDemons = ""
         if linha[0]['txtDemonstra']:
             txtDemons = linha[0]['txtDemonstra']
+            
+        #boleto_obj = self.pool.get('boleto.boleto')
         
         boleto.cedente = str(user.company_id.partner_id.legal_name)
         boleto.cedente_logradouro = user.company_id.partner_id.street + ', ' + user.company_id.partner_id.number
@@ -109,7 +124,7 @@ class BoletoGenerator(object):
         
         Linha_Juros = ''
         if juros_dia > 0 and val_multa > 0:
-            Linha_Juros = u'Após vencimento, multa de R$ %.2f e mora de R$ %.2f .\r\n' % (val_multa,juros_dia)
+            Linha_Juros = u'Após vencimento, multa de R$ %.2f e mora de R$ %.2f ao dia.\r\n' % (val_multa,juros_dia)
         
         if MsgProtesto:
             Linha_Juros = Linha_Juros + MsgProtesto + '\r\n'
@@ -125,13 +140,15 @@ class BoletoGenerator(object):
         
         
         boleto.especie = 'R$'
-        boleto.especie_documento = 'R$'
+        boleto.especie_documento = 'DM'
         boleto.aceite = 'N'
         boleto.quantidade = ''
         #boleto.nosso_numero = 1
         boleto.sacado = [
-                         u"%s - %s" % (invoice.partner_id.cnpj_cpf,(invoice.partner_id.legal_name or invoice.partner_id.name)),
-                         u"%s, %s - %s - %s - %s - Cep. %s" % (invoice.partner_id.street, invoice.partner_id.number, invoice.partner_id.district, invoice.partner_id.l10n_br_city_id.name, invoice.partner_id.state_id.code, invoice.partner_id.zip),
+                         u"%s - %s" % (invoice.partner_id.cnpj_cpf,linha[0]['NomeSacado']),
+                         u"%s - %s - %s - %s - Cep. %s" % (linha[0]['EnderecoSacado'], linha[0]['BairroSacado'], 
+                                                           linha[0]['CidadeSacado'], linha[0]['UfCidadeSacado'], 
+                                                           linha[0]['CepSacado']),
                          u'',]
 
 #             boleto.sacado = [
@@ -142,6 +159,7 @@ class BoletoGenerator(object):
 #         nosso_numero = str(boleto.format_nosso_numero())
 #         linha[0]['NossoNumero'] = nosso_numero[:17]
 #         _logger.info('NossoNumero: '+str(boleto.format_nosso_numero()))
+
         boleto_pdf.drawBoleto(boleto)
         boleto_pdf.nextPage()
 

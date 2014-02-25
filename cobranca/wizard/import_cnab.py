@@ -35,12 +35,16 @@ from parser import CNABParser
 class CNABImporter(osv.osv_memory):
     _name = 'cnab.wizard.importer'
     
-    def load_format(self, cr, uid):
+    def load_format(self, cr, uid, convenio):
+        format = False
         pool = self.pool.get('cnab.file_format')
         try:
-            format_id = pool.search(cr, uid, [('type', '=', 'Arquivo-Retorno')])
-            [format] = pool.browse(cr, uid, format_id)
-            return format
+            if convenio.leiaute_envio: 
+                format_id = convenio.leiaute_envio.id
+                [format] = pool.browse(cr, uid, format_id)
+                return format
+            else:
+                raise osv.except_osv('Error', 'CNAB File format for Arquivo-Retorno not found')
         except ValueError:
             raise osv.except_osv('Error', 'CNAB File format for Arquivo-Retorno not found')
         return format
@@ -129,26 +133,29 @@ class CNABImporter(osv.osv_memory):
     def import_file(self, cr, uid, ids, context=None):
         invoice_pool = self.pool.get('account.invoice')
         [wizard] = self.browse(cr, uid, ids)
-        format = self.load_format(cr, uid)
+        [convenio] = self.pool.get('res.partner.bank').browse(cr, uid, wizard.bank_partner_id)
+        format = self.load_format(cr, uid, convenio)
         data = base64.b64decode(wizard.file)
         cnab_file = StringIO(data)
         try:
             parser = CNABParser()
-            payments = [line for line in parser.parse_file(format, cnab_file) if line['IDReg'] == '1']
+            if convenio.bank.bic == "001":
+                payments = [line for line in parser.parse_file(format, cnab_file) if line['IDReg'] == '7']
         except:
             raise osv.except_osv('Error', 'Invalid File')
         journal = wizard.bank_id.journal_id
         if not journal:
             raise osv.except_osv('Error', 'Please configure bank journal')
         not_found = []
-        for line in payments:
+        for line in payments: 
             try:
-                value = self._cents_to_euros(line['ValorPago'])
-                payment_date = line['DataCredito'].isoformat()
-                invoice_ids = invoice_pool.search(cr, uid, [('number', '=', line['IdentificacaoTitulo1'])])
-                [invoice] = invoice_pool.browse(cr, uid, invoice_ids)
-                print "I'm paying invoice %s with %s euros" % (invoice_id, value)
-                self._pay_invoice(cr, uid, journal, invoice, payment_date, value)
+                if convenio.bank.bic == "001":
+                    value = self._cents_to_euros(line['ValorPago'])
+                    payment_date = line['DataCredito'].isoformat()
+                    invoice_ids = invoice_pool.search(cr, uid, [('number', '=', line['IdentificacaoTitulo1'])])
+                    [invoice] = invoice_pool.browse(cr, uid, invoice_ids)
+                    print "I'm paying invoice %s with %s euros" % (invoice.id, value)
+                    self._pay_invoice(cr, uid, journal, invoice, payment_date, value)
             except ValueError:
                 not_found.append(str(line['IdentificacaoTitulo1']))
         logging.error('Couldn\'t find the following invoices: %s', ', '.join(not_found))
@@ -156,5 +163,6 @@ class CNABImporter(osv.osv_memory):
     
     _columns = {
                 'file': fields.binary('File', required=True),
-                'bank_id': fields.many2one('res.partner.bank', 'Bank', domain=[('bank.enable_cnab', '=', True)])
+                'bank_id': fields.many2one('res.partner.bank', 'Bank', domain=[('bank.enable_cnab', '=', True)]),
+                'bank_partner_id': fields.many2one('res.partner.bank', u'Cobrança',required=True,domain=[('enable_cnab', '=', True)]),
                 }

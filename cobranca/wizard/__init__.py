@@ -23,3 +23,4 @@
 import file_format_loader
 import export_cnab
 import import_cnab
+import account_invoice_send_email

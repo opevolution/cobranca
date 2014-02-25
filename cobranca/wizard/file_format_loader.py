@@ -20,6 +20,7 @@
 # -versao_arquivo 0.1                                                         #
 ###############################################################################
 
+import logging
 import time
 import netsvc
 from tools.translate import _
@@ -30,6 +31,9 @@ import logging
 import base64
 
 from openerp.addons.cobranca import file_format
+
+_logger = logging.getLogger(__name__)
+
 FORMAT_TYPES = file_format.FORMAT_TYPES
 
 def create_new_rows(func, values, sequence=False):
@@ -66,11 +70,16 @@ class FileFormatLoader(osv.osv_memory):
                 }
 
 class Parser(object):
+
+    _total_lenght = 0
+    _reg_anterior = False
+    
     def parse_schema(self, xml_schema):
         xml = XML(xml_schema, parser=XMLParser(remove_comments=True))
         return self.parse_file(xml)
     
     def parse_file(self, xml):
+        _total_lenght = 0
         layout_element = xml.find('FlatFile/layout')
         records_elements = xml.findall('FlatFile/GroupOfRecords/Record')
         return {
@@ -83,11 +92,17 @@ class Parser(object):
                 }
     
     def parse_record(self, record):
+        if self._reg_anterior != False:
+            if self._total_lenght != 400:
+                _logger.info('Tamanho diferente de 400: '+str(self._reg_anterior.get('name'))+' ['+str(self._total_lenght)+']')
+                 
         group_of_fields = record.find('GroupOfFields')
         fields_elements = list(group_of_fields) if group_of_fields is not None else []
         group_of_inner_records = record.find('GroupOfInnerRecords')
         inner_records = list(group_of_inner_records) if group_of_inner_records is not None else []
         is_repeatable = False if 'repeatable' not in record.keys() else (record.get('repeatable') == 'true')
+        self._reg_anterior = record
+        self._total_lenght = 0
         return {
                 'name': record.get('name'),
                 'description': record.get('description'),
@@ -97,8 +112,10 @@ class Parser(object):
                 }
     
     def parse_field(self, field, sequence):
+        self._total_lenght = self._total_lenght + int(field.get('length'))
         optional = lambda e, k: e.get(k) if k in e.keys() else False
         optional_int = lambda e, k: int(optional(e, k)) if optional(e, k) is not False else False
+        #_logger.info('Tratando Field: '+str(field.get('name')+'['+str(field.get('length'))+'/'+str(self._total_lenght)+']'))
         return {
                 'sequence': sequence,
                 'type': field.tag,

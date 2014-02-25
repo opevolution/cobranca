@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+	<data>
+		<record id="account_invoice_send_email_view" model="ir.ui.view">
+			<field name="name">account_invoice_send_email_view</field>
+			<field name="model">account.invoice.send_email</field>
+			<field name="arch" type="xml">
+				<form string="Envio E-Mail Faturamento" version="7.0">
+					<field name="state" invisible="1"/>
+					<group states="init" col="4">
+						<group>
+							<field name="teste"/>
+							<field name="cc"/>
+						</group>
+					</group>
+					<group states="doing" col="4">
+						<group>
+							<field name="progress_rate" widget="progressbar"/>
+						</group>
+					</group>
+					<footer>
+						<group states="init">
+							<button type="object" name="action_send" string="Enviar"/>
+						</group>
+					</footer>
+				</form>
+			</field>
+		</record>
+
+		<record id="action_account_invoice_send_email" model="ir.actions.act_window">
+			<field name="name">Envio E-Mail Faturamento</field>
+			<field name="res_model">account.invoice.send_email</field>
+			<field name="view_type">form</field>
+			<field name="view_mode">form</field>
+			<field name="target">new</field>
+			<field name="domain">[]</field>
+		</record>
+		
+		<act_window id="actw_account_invoice_send_email" 
+		            key2="client_action_multi"
+		            name="Envio E-Mail Faturamento"
+		            res_model="account.invoice.send_email"
+		            src_model="account.invoice"
+		            view_id="account_invoice_send_email_view"
+		            view_mode="form"
+		            view_type="form"
+		            target="new"/>
+		            
+	</data>
+</openerp>

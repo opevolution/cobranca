@@ -23,7 +23,7 @@
                     <Field name="DvAgencia" length="1"/>
                     <Field name="NroContaCorrente" type="INTEGER" length="8" padding="ZERO_LEFT"/>
                     <Field name="DvContaCorrente" length="1"/>
-					<Field name="CompReg" value="0" length="6"/>
+                    <Field name="IdentificacaoRemessa" value="0" type="INTEGER" length="6" padding="ZERO_LEFT"/>
                     <Field name="NomeCedente" length="30"/>
                     <Field name="NomeBanco" length="18" value="001BANCODOBRASIL"/>
                     <Field name="DataGravacaoArquivo" type="DATE" length="6" format="DATE_DDMMYY"/>

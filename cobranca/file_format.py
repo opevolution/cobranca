@@ -64,7 +64,7 @@ class FieldFormat(osv.osv):
     _name = 'cnab.field_format'
     
     VALID_TYPES = ('STRING', 'CHARACTER', 'INTEGER', 'DATE', 'BIGDECIMAL')
-    VALID_FORMATS = ('DATE_DDMMYY', 'DECIMAL_DD')
+    VALID_FORMATS = ('DATE_DDMMYY', 'DATE_DDMMYYYY', 'DECIMAL_DD')
     VALID_PADDINGS = ('ZERO_LEFT',)
     
     InternalTypes = ('IdType', 'Field', 'SequencialNumber')
